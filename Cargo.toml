@@ -1,0 +1,18 @@
+[package]
+name = "redpiler_jni"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate_type = ["cdylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mchprs_core = { git = "https://github.com/MCHPR/MCHPRS.git" }
+mchprs_blocks = { git = "https://github.com/MCHPR/MCHPRS.git" }
+mchprs_world = { git = "https://github.com/MCHPR/MCHPRS.git" }
+jni = "0.21.1"
+
+[patch.crates-io]
+hematite-nbt = { git = "https://github.com/StackDoubleFlow/hematite_nbt" }
