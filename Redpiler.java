@@ -1,15 +1,18 @@
-class Redpiler {
-    private static native void initializeWorld(int xDim, int yDim, int zDim, int[] states, TickEntry[] tileTicks);
-    private static native void compileWorld(boolean optimize, boolean io_only);
-    private static native void runTicks(int amount);
-    private static native void flush(BlockChangeConsumer comsumer);
-    private static native TickEntry[] reset();
+public class Redpiler {
+    private long stateValueHandle = 0;
 
-    private interface BlockChangeConsumer {
+    private native void init();
+    public native void initializeWorld(int xDim, int yDim, int zDim, int[] states, TickEntry[] tileTicks);
+    public native void compileWorld(boolean optimize, boolean io_only);
+    public native void runTicks(int amount);
+    public native void flush(BlockChangeConsumer comsumer);
+    public native TickEntry[] reset();
+
+    public interface BlockChangeConsumer {
         void onBlockChange(int xPos, int yPos, int zPos, int newState);
     }
 
-    private static class TickEntry {
+    public static class TickEntry {
         public int priority;
         public int ticksRemaining;
         public int xPos;
@@ -29,21 +32,7 @@ class Redpiler {
         System.loadLibrary("redpiler_jni");
     }
 
-    public static void main(String[] args) {
-        TickEntry[] ticks = new TickEntry[] {
-            new TickEntry(0, 1, 1, 0, 1)
-        };
-        initializeWorld(2, 1, 2, new int[] {
-            2114, 16014, // Wire, Target
-            2114, 3960, // Wire, Wall Torch (South Lit)
-        }, ticks);
-        compileWorld(false, false);
-        runTicks(2);
-        flush(new BlockChangeConsumer() {
-            @Override
-            public void onBlockChange(int xPos, int yPos, int zPos, int newState) {
-                System.out.println("Block at (" + xPos + "," + yPos + "," + zPos + ") changed to state " + newState);
-            }
-        });
+    public Redpiler() {
+        init();
     }
 }

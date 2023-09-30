@@ -1,17 +1,16 @@
 mod change_consumer;
 
-use jni::objects::{JClass, JIntArray, JObject, JObjectArray, ReleaseMode};
-use jni::sys::{jboolean, jint, jobject};
+use jni::objects::{JIntArray, JObject, JObjectArray};
+use jni::sys::{jboolean, jint};
 use jni::JNIEnv;
 use mchprs_blocks::block_entities::BlockEntity;
-use mchprs_blocks::blocks::Block;
 use mchprs_blocks::BlockPos;
 use mchprs_core::redpiler::{Compiler, CompilerOptions};
 use mchprs_core::world::storage::Chunk;
 use mchprs_core::world::World;
 use mchprs_world::{TickEntry, TickPriority};
 
-use std::sync::Mutex;
+use std::sync::MutexGuard;
 
 use crate::change_consumer::ChangeConsumer;
 
@@ -48,15 +47,15 @@ impl World for SmallWorld {
         }
     }
 
-    fn set_block_raw(&mut self, pos: BlockPos, block: u32) -> bool {
-        todo!()
+    fn set_block_raw(&mut self, _pos: BlockPos, _block: u32) -> bool {
+        unimplemented!()
     }
 
     fn delete_block_entity(&mut self, _pos: BlockPos) {
         unimplemented!()
     }
 
-    fn get_block_entity(&self, pos: BlockPos) -> Option<&BlockEntity> {
+    fn get_block_entity(&self, _pos: BlockPos) -> Option<&BlockEntity> {
         todo!()
     }
 
@@ -64,7 +63,7 @@ impl World for SmallWorld {
         unimplemented!()
     }
 
-    fn get_chunk(&self, x: i32, z: i32) -> Option<&Chunk> {
+    fn get_chunk(&self, _x: i32, _z: i32) -> Option<&Chunk> {
         unimplemented!()
     }
 
@@ -85,20 +84,34 @@ impl World for SmallWorld {
     }
 }
 
-struct GlobalState {
+struct RedpilerState {
     world: Option<SmallWorld>,
     redpiler: Option<Compiler>,
 }
 
-static STATE: Mutex<GlobalState> = Mutex::new(GlobalState {
-    world: None,
-    redpiler: None,
-});
+fn get_state<'local>(env: &'local mut JNIEnv, obj: JObject) -> MutexGuard<'local, RedpilerState> {
+    unsafe { env.get_rust_field(obj, "stateValueHandle") }.unwrap()
+}
+
+#[no_mangle]
+pub extern "system" fn Java_Redpiler_init<'local>(mut env: JNIEnv<'local>, obj: JObject<'local>) {
+    unsafe {
+        env.set_rust_field(
+            obj,
+            "stateValueHandle",
+            RedpilerState {
+                world: None,
+                redpiler: None,
+            },
+        )
+        .unwrap()
+    };
+}
 
 #[no_mangle]
 pub extern "system" fn Java_Redpiler_initializeWorld<'local>(
     mut env: JNIEnv<'local>,
-    class: JClass<'local>,
+    obj: JObject<'local>,
     x_dim: jint,
     y_dim: jint,
     z_dim: jint,
@@ -140,13 +153,13 @@ pub extern "system" fn Java_Redpiler_initializeWorld<'local>(
         states: buf.into_iter().map(|x| x as u32).collect(),
         to_be_ticked,
     };
-    STATE.lock().unwrap().world = Some(world);
+    get_state(&mut env, obj).world = Some(world);
 }
 
 #[no_mangle]
 pub extern "system" fn Java_Redpiler_compileWorld<'local>(
     mut env: JNIEnv<'local>,
-    class: JClass<'local>,
+    obj: JObject<'local>,
     optimize: jboolean,
     io_only: jboolean,
 ) {
@@ -155,7 +168,7 @@ pub extern "system" fn Java_Redpiler_compileWorld<'local>(
         io_only: io_only != 0,
         export: false,
     };
-    let lock = &mut *STATE.lock().unwrap();
+    let lock = &mut *get_state(&mut env, obj);
     let world = lock.world.as_mut().expect("world not initialized");
     let redpiler = lock.redpiler.get_or_insert_with(|| Default::default());
     let ticks = std::mem::replace(&mut world.to_be_ticked, Vec::new());
@@ -177,10 +190,10 @@ pub extern "system" fn Java_Redpiler_compileWorld<'local>(
 #[no_mangle]
 pub extern "system" fn Java_Redpiler_runTicks<'local>(
     mut env: JNIEnv<'local>,
-    class: JClass<'local>,
+    obj: JObject<'local>,
     amount: jint,
 ) {
-    let mut lock = STATE.lock().unwrap();
+    let mut lock = get_state(&mut env, obj);
     let redpiler = lock.redpiler.as_mut().expect("redpiler not initialized");
 
     for _ in 0..amount {
@@ -191,16 +204,21 @@ pub extern "system" fn Java_Redpiler_runTicks<'local>(
 #[no_mangle]
 pub extern "system" fn Java_Redpiler_flush<'local>(
     mut env: JNIEnv<'local>,
-    class: JClass<'local>,
+    obj: JObject<'local>,
     consumer: JObject<'local>,
 ) {
-    let mut lock = STATE.lock().unwrap();
+    // Safety: this cloned env is not used to create local references
+    let cloned_env = unsafe { env.unsafe_clone() };
+    let mut lock = get_state(&mut env, obj);
     let redpiler = lock.redpiler.as_mut().expect("redpiler not initialized");
-    let mut consumer = ChangeConsumer { consumer, env };
+    let mut consumer = ChangeConsumer {
+        consumer,
+        env: cloned_env,
+    };
     redpiler.flush(&mut consumer);
 }
 
 #[no_mangle]
-pub extern "system" fn Java_Redpiler_reset<'local>(mut env: JNIEnv<'local>, class: JClass<'local>) {
+pub extern "system" fn Java_Redpiler_reset<'local>(mut env: JNIEnv<'local>, obj: JObject<'local>) {
     todo!();
 }

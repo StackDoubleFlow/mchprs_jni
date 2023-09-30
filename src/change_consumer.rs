@@ -10,7 +10,7 @@ pub struct ChangeConsumer<'local> {
 }
 
 impl<'local> World for ChangeConsumer<'local> {
-    fn get_block_raw(&self, pos: mchprs_blocks::BlockPos) -> u32 {
+    fn get_block_raw(&self, _pos: mchprs_blocks::BlockPos) -> u32 {
         unimplemented!()
     }
 
@@ -31,43 +31,47 @@ impl<'local> World for ChangeConsumer<'local> {
         true
     }
 
-    fn delete_block_entity(&mut self, pos: mchprs_blocks::BlockPos) {
+    fn delete_block_entity(&mut self, _pos: mchprs_blocks::BlockPos) {
         unimplemented!()
     }
 
     fn get_block_entity(
         &self,
-        pos: mchprs_blocks::BlockPos,
+        _pos: mchprs_blocks::BlockPos,
     ) -> Option<&mchprs_blocks::block_entities::BlockEntity> {
         unimplemented!()
     }
 
     fn set_block_entity(
         &mut self,
-        pos: mchprs_blocks::BlockPos,
-        block_entity: mchprs_blocks::block_entities::BlockEntity,
+        _pos: mchprs_blocks::BlockPos,
+        _block_entity: mchprs_blocks::block_entities::BlockEntity,
     ) {
         unimplemented!()
     }
 
-    fn get_chunk(&self, x: i32, z: i32) -> Option<&mchprs_core::world::storage::Chunk> {
+    fn get_chunk(&self, _x: i32, _z: i32) -> Option<&mchprs_core::world::storage::Chunk> {
         unimplemented!()
     }
 
-    fn get_chunk_mut(&mut self, x: i32, z: i32) -> Option<&mut mchprs_core::world::storage::Chunk> {
+    fn get_chunk_mut(
+        &mut self,
+        _x: i32,
+        _z: i32,
+    ) -> Option<&mut mchprs_core::world::storage::Chunk> {
         unimplemented!()
     }
 
     fn schedule_tick(
         &mut self,
-        pos: mchprs_blocks::BlockPos,
-        delay: u32,
-        priority: mchprs_world::TickPriority,
+        _pos: mchprs_blocks::BlockPos,
+        _delay: u32,
+        _priority: mchprs_world::TickPriority,
     ) {
         unimplemented!()
     }
 
-    fn pending_tick_at(&mut self, pos: mchprs_blocks::BlockPos) -> bool {
+    fn pending_tick_at(&mut self, _pos: mchprs_blocks::BlockPos) -> bool {
         unimplemented!()
     }
 }
