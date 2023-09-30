@@ -33,10 +33,6 @@ impl SmallWorld {
 }
 
 impl World for SmallWorld {
-    fn get_block(&self, pos: BlockPos) -> Block {
-        Block::from_id(self.get_block_raw(pos))
-    }
-
     fn get_block_raw(&self, pos: BlockPos) -> u32 {
         if pos.x >= 0
             && pos.x < self.x_dim as i32
@@ -50,10 +46,6 @@ impl World for SmallWorld {
         } else {
             0
         }
-    }
-
-    fn set_block(&mut self, pos: BlockPos, block: Block) -> bool {
-        todo!()
     }
 
     fn set_block_raw(&mut self, pos: BlockPos, block: u32) -> bool {
@@ -90,10 +82,6 @@ impl World for SmallWorld {
 
     fn pending_tick_at(&mut self, _pos: BlockPos) -> bool {
         unimplemented!()
-    }
-
-    fn is_cursed(&self) -> bool {
-        false
     }
 }
 

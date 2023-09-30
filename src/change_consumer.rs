@@ -10,20 +10,8 @@ pub struct ChangeConsumer<'local> {
 }
 
 impl<'local> World for ChangeConsumer<'local> {
-    fn get_block(&self, pos: mchprs_blocks::BlockPos) -> mchprs_blocks::blocks::Block {
-        unimplemented!()
-    }
-
     fn get_block_raw(&self, pos: mchprs_blocks::BlockPos) -> u32 {
         unimplemented!()
-    }
-
-    fn set_block(
-        &mut self,
-        pos: mchprs_blocks::BlockPos,
-        block: mchprs_blocks::blocks::Block,
-    ) -> bool {
-        self.set_block_raw(pos, block.get_id())
     }
 
     fn set_block_raw(&mut self, pos: mchprs_blocks::BlockPos, block: u32) -> bool {
@@ -81,9 +69,5 @@ impl<'local> World for ChangeConsumer<'local> {
 
     fn pending_tick_at(&mut self, pos: mchprs_blocks::BlockPos) -> bool {
         unimplemented!()
-    }
-
-    fn is_cursed(&self) -> bool {
-        false
     }
 }
